@@ -1,0 +1,67 @@
+// Protocol buffers related to the Scott Adams adventure games.
+//
+// To rebuild:
+//   protoc -I=. --go_out=. ./scott.proto
+//
+// This will yield an updated copy of scott.pb.go in this directory.
+
+syntax = "proto3";
+
+package scott;
+
+//option go_package = "github.com/chaosotter/golang-adventures/api/scottpb";
+option go_package = ".;scottpb";
+
+message Header {
+    int32 unknown0       =  1;  // unknown purpose (bytes 0-1)
+    int32 num_items      =  2;  // number of items
+    int32 num_actions    =  3;  // number of actions
+    int32 num_words      =  4;  // number of both nouns and verbs
+    int32 max_inventory  =  5;  // maximum number of inventory items
+    int32 starting_room  =  6;  // 0-based index of initial room
+    int32 num_treasures  =  7;  // number of treasures (technically redundant)
+    int32 word_length    =  8;  // word length (3, 4, 5)
+    int32 light_duration =  9;  // number of turns for light, or -1 for eternal
+    int32 num_messages   = 10;  // number of messages
+    int32 treasure_room  = 11;  // 0-based index of treasure room for scoring
+    int32 unknown12      = 12;  // unknown purpose (bytes 26-27)
+}
+
+enum ConditionType {
+    PARAMETER           =  0;
+    ITEM_CARRIED        =  1;  // item |value| carried
+    ITEM_IN_ROOM        =  2;  // item |value| in room with player
+    ITEM_PRESENT        =  3;  // item |value| carried or in room with player
+    PLAYER_IN_ROOM      =  4;  // player in room |value|
+    ITEM_NOT_IN_ROOM    =  5;  // item |value| not in room with player
+    ITEM_NOT_CARRIED    =  6;  // item |value| not carried
+    PLAYER_NOT_IN_ROOM  =  7;  // player not in room |value|
+    BIT_SET             =  8;  // bit flag |value| is set
+    BIT_CLEAR           =  9;  // bit flag |value| is clear
+    INVENTORY_NOT_EMPTY = 10;  // something is carried, |value| ignored
+    INVENTORY_EMPTY     = 11;  // nothing is carried, |value| ignored
+    ITEM_NOT_PRESENT    = 12;  // item |value| neither carried or in room with player
+    ITEM_IN_GAME        = 13;  // item |value| is in the game (not in room 0)
+    ITEM_NOT_IN_GAME    = 14;  // item |value| is not in the game (in room 0)
+    COUNTER_LE          = 15;  // current counter is <= |value|
+    COUNTER_GE          = 16;  // current counter is >= |value|
+    ITEM_MOVED          = 17;  // item |value| is in its initial location
+    ITEM_NOT_MOVED      = 18;  // item |value| is not in its initial location
+    COUNTER_EQ          = 19;  // current counter is == |value|
+}
+message Condition {
+    ConditionType type = 1;  // the type of condition
+    int32 value        = 2;  // the parameter to the condition
+}
+
+message Action {
+    int32 verb_index              = 1;  // index of the verb
+    int32 noun_index              = 2;  // index of the noun
+    repeated Condition conditions = 3;  // 5 conditions
+    repeated int32 actions        = 4;  // 4 actions
+}
+
+message Game {
+    Header header           = 1;
+    repeated Action actions = 2;
+}
