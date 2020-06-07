@@ -144,14 +144,14 @@ func (s *Stream) Done() bool {
 }
 
 // NextInt returns the next integer in the stream.
-func (s *Stream) NextInt() (int32, error) {
+func (s *Stream) NextInt() (int, error) {
 	switch t, err := s.nextToken(); {
 	case err != nil:
 		return 0, err
 	case t.typ != typeInt:
 		return 0, fmt.Errorf("Next token was a string, expected an integer")
 	default:
-		return t.value.(int32), nil
+		return t.value.(int), nil
 	}
 }
 
