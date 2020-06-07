@@ -26,6 +26,7 @@ func Parse(data []byte) (*scottpb.Game, error) {
 	}{
 		{"header", loadHeader},
 		{"actions", loadActions},
+		{"words", loadWords},
 	} {
 		if err := step.fn(pb, s); err != nil {
 			return nil, fmt.Errorf("Error parsing %s: %v", step.phase, err)
@@ -51,7 +52,6 @@ func loadHeader(pb *scottpb.Game, s *stream.Stream) error {
 		&h.LightDuration,
 		&h.NumMessages,
 		&h.TreasureRoom,
-		//&h.Unknown12,
 	} {
 		val, err := s.NextInt()
 		if err != nil {
@@ -111,4 +111,33 @@ func loadActions(pb *scottpb.Game, s *stream.Stream) error {
 	}
 
 	return nil
+}
+
+// loadWords loads in the verbs and nouns, which are an interleaved array of
+// strings.  An initial "*" indicates a synonym.
+func loadWords(pb *scottpb.Game, s *stream.Stream) error {
+	for i := 0; i < int(pb.Header.NumWords); i++ {
+		val, err := s.NextString()
+		if err != nil {
+			return fmt.Errorf("Verb %d: %v", i, err)
+		}
+		pb.Verbs = append(pb.Verbs, makeWord(val))
+
+		val, err = s.NextString()
+		if err != nil {
+			return fmt.Errorf("Noun %d: %v", i, err)
+		}
+		pb.Nouns = append(pb.Nouns, makeWord(val))
+	}
+
+	return nil
+}
+
+// makeWord takes care of making a Word proto from an input string, parsing out
+// the synonym flag if necessary.
+func makeWord(raw string) *scottpb.Word {
+	if len(raw) > 0 && raw[0] == '*' {
+		return &scottpb.Word{Word: raw[1:len(raw)], Synonym: true}
+	}
+	return &scottpb.Word{Word: raw}
 }

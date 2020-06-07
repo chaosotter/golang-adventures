@@ -204,7 +204,14 @@ message Action {
     repeated ActionType actions   = 4;  // 4 actions
 }
 
+message Word {
+    string word  = 1;  // the text of the word (truncated)
+    bool synonym = 2;  // if set, this is a synonym of the previous word
+}
+
 message Game {
     Header header           = 1;
     repeated Action actions = 2;
+    repeated Word verbs     = 3;
+    repeated Word nouns     = 4;
 }
