@@ -17,14 +17,15 @@ message Header {
     int32 num_items      =  2;  // number of items
     int32 num_actions    =  3;  // number of actions
     int32 num_words      =  4;  // number of both nouns and verbs
-    int32 max_inventory  =  5;  // maximum number of inventory items
-    int32 starting_room  =  6;  // 0-based index of initial room
-    int32 num_treasures  =  7;  // number of treasures (technically redundant)
-    int32 word_length    =  8;  // word length (3, 4, 5)
-    int32 light_duration =  9;  // number of turns for light, or -1 for eternal
-    int32 num_messages   = 10;  // number of messages
-    int32 treasure_room  = 11;  // 0-based index of treasure room for scoring
-    int32 unknown12      = 12;  // unknown purpose (bytes 26-27)
+    int32 num_rooms      =  5;  // number of rooms
+    int32 max_inventory  =  6;  // maximum number of inventory items
+    int32 starting_room  =  7;  // 0-based index of initial room
+    int32 num_treasures  =  8;  // number of treasures (technically redundant)
+    int32 word_length    =  9;  // word length (3, 4, 5)
+    int32 light_duration = 10;  // number of turns for light, or -1 for eternal
+    int32 num_messages   = 11;  // number of messages
+    int32 treasure_room  = 12;  // 0-based index of treasure room for scoring
+    int32 unknown12      = 13;  // unknown purpose (bytes 26-27)
 }
 
 enum ConditionType {
