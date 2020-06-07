@@ -103,7 +103,8 @@ func loadActions(pb *scottpb.Game, s *stream.Stream) error {
 			if err != nil {
 				return fmt.Errorf("Action %d, action value %d: %v", i, j, err)
 			}
-			a.Actions = append(a.Actions, int32(val/150), int32(val%150))
+			a.Actions = append(a.Actions, (scottpb.ActionType)(val/150))
+			a.Actions = append(a.Actions, (scottpb.ActionType)(val%150))
 		}
 
 		pb.Actions = append(pb.Actions, a)

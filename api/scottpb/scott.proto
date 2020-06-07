@@ -13,7 +13,7 @@ package scott;
 option go_package = ".;scottpb";
 
 message Header {
-    int32 unknown0       =  1;  // unknown purpose (bytes 0-1)
+    int32 unknown0       =  1;  // unknown purpose
     int32 num_items      =  2;  // number of items
     int32 num_actions    =  3;  // number of actions
     int32 num_words      =  4;  // number of both nouns and verbs
@@ -25,11 +25,10 @@ message Header {
     int32 light_duration = 10;  // number of turns for light, or -1 for eternal
     int32 num_messages   = 11;  // number of messages
     int32 treasure_room  = 12;  // 0-based index of treasure room for scoring
-    int32 unknown12      = 13;  // unknown purpose (bytes 26-27)
 }
 
 enum ConditionType {
-    PARAMETER           =  0;
+    PARAMETER           =  0;  // sets up parameters for actions
     ITEM_CARRIED        =  1;  // item |value| carried
     ITEM_IN_ROOM        =  2;  // item |value| in room with player
     ITEM_PRESENT        =  3;  // item |value| carried or in room with player
@@ -50,16 +49,159 @@ enum ConditionType {
     ITEM_NOT_MOVED      = 18;  // item |value| is not in its initial location
     COUNTER_EQ          = 19;  // current counter is == |value|
 }
+
 message Condition {
     ConditionType type = 1;  // the type of condition
     int32 value        = 2;  // the parameter to the condition
+}
+
+enum ActionType {
+    NOTHING           =   0;
+    MESSAGE_0         =   1;  // print message 0
+    MESSAGE_1         =   2;  // print message 1
+    MESSAGE_2         =   3;  // print message 2
+    MESSAGE_3         =   4;  // print message 3
+    MESSAGE_4         =   5;  // print message 4
+    MESSAGE_5         =   6;  // print message 5
+    MESSAGE_6         =   7;  // print message 6
+    MESSAGE_7         =   8;  // print message 7
+    MESSAGE_8         =   9;  // print message 8
+    MESSAGE_9         =  10;  // print message 9
+    MESSAGE_10        =  11;  // print message 10
+    MESSAGE_11        =  12;  // print message 11
+    MESSAGE_12        =  13;  // print message 12
+    MESSAGE_13        =  14;  // print message 13
+    MESSAGE_14        =  15;  // print message 14
+    MESSAGE_15        =  16;  // print message 15
+    MESSAGE_16        =  17;  // print message 16
+    MESSAGE_17        =  18;  // print message 17
+    MESSAGE_18        =  19;  // print message 18
+    MESSAGE_19        =  20;  // print message 19
+    MESSAGE_20        =  21;  // print message 20
+    MESSAGE_21        =  22;  // print message 21
+    MESSAGE_22        =  23;  // print message 22
+    MESSAGE_23        =  24;  // print message 23
+    MESSAGE_24        =  25;  // print message 24
+    MESSAGE_25        =  26;  // print message 25
+    MESSAGE_26        =  27;  // print message 26
+    MESSAGE_27        =  28;  // print message 27
+    MESSAGE_28        =  29;  // print message 28
+    MESSAGE_29        =  30;  // print message 29
+    MESSAGE_30        =  31;  // print message 30
+    MESSAGE_31        =  32;  // print message 31
+    MESSAGE_32        =  33;  // print message 32
+    MESSAGE_33        =  34;  // print message 33
+    MESSAGE_34        =  35;  // print message 34
+    MESSAGE_35        =  36;  // print message 35
+    MESSAGE_36        =  37;  // print message 36
+    MESSAGE_37        =  38;  // print message 37
+    MESSAGE_38        =  39;  // print message 38
+    MESSAGE_39        =  40;  // print message 39
+    MESSAGE_40        =  41;  // print message 40
+    MESSAGE_41        =  42;  // print message 41
+    MESSAGE_42        =  43;  // print message 42
+    MESSAGE_43        =  44;  // print message 43
+    MESSAGE_44        =  45;  // print message 44
+    MESSAGE_45        =  46;  // print message 45
+    MESSAGE_46        =  47;  // print message 46
+    MESSAGE_47        =  48;  // print message 47
+    MESSAGE_48        =  49;  // print message 48
+    MESSAGE_49        =  50;  // print message 49
+    MESSAGE_50        =  51;  // print message 50
+    GET_ITEM          =  52;  // get item |param| (with checks)
+    DROP_ITEM         =  53;  // drop item |param|
+    MOVE_PLAYER       =  54;  // move player to room |param|
+    REMOVE_ITEM       =  55;  // item |param| is removed (put in room 0)
+    SET_DARKNESS      =  56;  // set the darkness flag
+    CLEAR_DARKNESS    =  57;  // clear the darkness flag
+    SET_BIT           =  58;  // set bit flag |param|
+    REMOVE_ITEM2      =  59;  // duplicate of type 55 (REMOVE_ITEM)
+    CLEAR_BIT         =  60;  // clear bit flag |param|
+    DEATH             =  61;  // kill the player (put in last room)
+    PUT_ITEM          =  62;  // put item |param1| in room |param2|
+    GAME_OVER         =  63;  // game over
+    DESCRIBE_ROOM     =  64;  // describe the current room
+    SCORE             =  65;  // show the score
+    INVENTORY         =  66;  // show the inventory
+    SET_BIT_0         =  67;  // set bit flag 0
+    CLEAR_BIT_0       =  68;  // clear bit flag 0
+    REFILL_LIGHT      =  69;  // refill the light source
+    CLEAR_SCREEN      =  70;  // clear the screen
+    SAVE_GAME         =  71;  // saves the current game
+    SWAP_ITEMS        =  72;  // exchange the locations of items |param1| and |param2|
+    CONTINUE          =  73;  // continue with next action (continuation actions have verb 0, noun 0)
+    TAKE_ITEM         =  74;  // unconditionally take item |param|
+    MOVE_ITEM_TO_ITEM =  75;  // move item |param1| to location of item |param2|
+    DESCRIBE_ROOM2    =  76;  // duplicate of type 64 (DESCRIBE_ROOM)
+    DECREMENT_COUNTER =  77;  // decrement current counter (to minimum of 0)
+    PRINT_COUNTER     =  78;  // print current counter value
+    SET_COUNTER       =  79;  // set current counter to |param|
+    SWAP_LOCATION     =  80;  // swap player location with location-swap
+    SELECT_COUNTER    =  81;  // swap current counter for counter |param|
+    ADD_TO_COUNTER    =  82;  // add |param| to current counter
+    SUB_FROM_COUNTER  =  83;  // subtract |param| from current counter
+    ECHO_NOUN         =  84;  // echo the noun
+    ECHO_NOUN_CR      =  85;  // echo the noun and a <CR>
+    ECHO_CR           =  86;  // echo a <CR>
+    SWAP_LOCATION_N   =  87;  // swap player location with location-swap |param|
+    DELAY             =  88;  // wait two seconds
+    DRAW_PICTURE      =  89;  // draw picture |param| (for SAGA games)
+    MESSAGE_51        = 102;  // print message 51
+    MESSAGE_52        = 103;  // print message 52
+    MESSAGE_53        = 104;  // print message 53
+    MESSAGE_54        = 105;  // print message 54
+    MESSAGE_55        = 106;  // print message 55
+    MESSAGE_56        = 107;  // print message 56
+    MESSAGE_57        = 108;  // print message 57
+    MESSAGE_58        = 109;  // print message 58
+    MESSAGE_59        = 110;  // print message 59
+    MESSAGE_60        = 111;  // print message 60
+    MESSAGE_61        = 112;  // print message 61
+    MESSAGE_62        = 113;  // print message 62
+    MESSAGE_63        = 114;  // print message 63
+    MESSAGE_64        = 115;  // print message 64
+    MESSAGE_65        = 116;  // print message 65
+    MESSAGE_66        = 117;  // print message 66
+    MESSAGE_67        = 118;  // print message 67
+    MESSAGE_68        = 119;  // print message 68
+    MESSAGE_69        = 120;  // print message 69
+    MESSAGE_70        = 121;  // print message 70
+    MESSAGE_71        = 122;  // print message 71
+    MESSAGE_72        = 123;  // print message 72
+    MESSAGE_73        = 124;  // print message 73
+    MESSAGE_74        = 125;  // print message 74
+    MESSAGE_75        = 126;  // print message 75
+    MESSAGE_76        = 127;  // print message 76
+    MESSAGE_77        = 128;  // print message 77
+    MESSAGE_78        = 129;  // print message 78
+    MESSAGE_79        = 130;  // print message 79
+    MESSAGE_80        = 131;  // print message 80
+    MESSAGE_81        = 132;  // print message 81
+    MESSAGE_82        = 133;  // print message 82
+    MESSAGE_83        = 134;  // print message 83
+    MESSAGE_84        = 135;  // print message 84
+    MESSAGE_85        = 136;  // print message 85
+    MESSAGE_86        = 137;  // print message 86
+    MESSAGE_87        = 138;  // print message 87
+    MESSAGE_88        = 139;  // print message 88
+    MESSAGE_89        = 140;  // print message 89
+    MESSAGE_90        = 141;  // print message 90
+    MESSAGE_91        = 142;  // print message 91
+    MESSAGE_92        = 143;  // print message 92
+    MESSAGE_93        = 144;  // print message 93
+    MESSAGE_94        = 145;  // print message 94
+    MESSAGE_95        = 146;  // print message 95
+    MESSAGE_96        = 147;  // print message 96
+    MESSAGE_97        = 148;  // print message 97
+    MESSAGE_98        = 149;  // print message 98
+    MESSAGE_99        = 150;  // print message 99
 }
 
 message Action {
     int32 verb_index              = 1;  // index of the verb
     int32 noun_index              = 2;  // index of the noun
     repeated Condition conditions = 3;  // 5 conditions
-    repeated int32 actions        = 4;  // 4 actions
+    repeated ActionType actions   = 4;  // 4 actions
 }
 
 message Game {
