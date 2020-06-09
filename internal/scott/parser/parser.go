@@ -27,6 +27,7 @@ func Parse(data []byte) (*scottpb.Game, error) {
 		{"header", loadHeader},
 		{"actions", loadActions},
 		{"words", loadWords},
+		{"rooms", loadRooms},
 	} {
 		if err := step.fn(pb, s); err != nil {
 			return nil, fmt.Errorf("Error parsing %s: %v", step.phase, err)
@@ -140,4 +141,42 @@ func makeWord(raw string) *scottpb.Word {
 		return &scottpb.Word{Word: raw[1:len(raw)], Synonym: true}
 	}
 	return &scottpb.Word{Word: raw}
+}
+
+// loadRooms loads in the rooms, of which consists of six directions followed by
+// a description.  The description starts with "*" to indicate that it stands
+// alone, with no "I'm in a" prefix.
+func loadRooms(pb *scottpb.Game, s *stream.Stream) error {
+	for i := 0; i < int(pb.Header.NumRooms); i++ {
+		r := &scottpb.Room{}
+		for _, field := range []*int32{
+			&r.North,
+			&r.South,
+			&r.East,
+			&r.West,
+			&r.Up,
+			&r.Down,
+		} {
+			val, err := s.NextInt()
+			if err != nil {
+				return fmt.Errorf("Room %d, directions: %v", i, err)
+			}
+			*field = int32(val)
+		}
+
+		desc, err := s.NextString()
+		if err != nil {
+			return fmt.Errorf("Room %d, description: %v", i, err)
+		}
+		if len(desc) > 0 && desc[0] == '*' {
+			r.Description = desc[1:len(desc)]
+			r.Literal = true
+		} else {
+			r.Description = desc
+		}
+
+		pb.Rooms = append(pb.Rooms, r)
+	}
+
+	return nil
 }
