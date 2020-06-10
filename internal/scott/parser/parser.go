@@ -7,6 +7,7 @@ package parser
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/chaosotter/golang-adventures/api/scottpb"
 	"github.com/chaosotter/golang-adventures/internal/scott/stream"
@@ -29,6 +30,7 @@ func Parse(data []byte) (*scottpb.Game, error) {
 		{"words", loadWords},
 		{"rooms", loadRooms},
 		{"messages", loadMessages},
+		{"items", loadItems},
 	} {
 		if err := step.fn(pb, s); err != nil {
 			return nil, fmt.Errorf("Error parsing %s: %v", step.phase, err)
@@ -144,9 +146,9 @@ func makeWord(raw string) *scottpb.Word {
 	return &scottpb.Word{Word: raw}
 }
 
-// loadRooms loads in the rooms, of which consists of six directions followed by
-// a description.  The description starts with "*" to indicate that it stands
-// alone, with no "I'm in a" prefix.
+// loadRooms loads in the rooms, each of which consists of six directions
+// followed by a description.  The description starts with "*" to indicate that
+// it stands alone, with no "I'm in a" prefix.
 func loadRooms(pb *scottpb.Game, s *stream.Stream) error {
 	for i := 0; i < int(pb.Header.NumRooms); i++ {
 		r := &scottpb.Room{}
@@ -191,6 +193,43 @@ func loadMessages(pb *scottpb.Game, s *stream.Stream) error {
 		}
 
 		pb.Messages = append(pb.Messages, val)
+	}
+
+	return nil
+}
+
+// loadItems loads in the items, each of which consists of a string description
+// and a room number indicating the initial location.  Treasures are indicated
+// with a leading "*".  If the description has a suffix of /XXX/, then automatic
+// GET and DROP operations can be performed using "XXX" as a noun.
+func loadItems(pb *scottpb.Game, s *stream.Stream) error {
+	for i := 0; i < int(pb.Header.NumItems); i++ {
+		it := &scottpb.Item{}
+
+		val, err := s.NextString()
+		if err != nil {
+			return fmt.Errorf("Item %d, description: %v", i, err)
+		}
+		if len(val) > 0 {
+			if val[0] == '*' {
+				it.IsTreasure = true
+			}
+			if strings.HasSuffix(val, "/") {
+				parts := strings.Split(val[0:len(val)-1], "/")
+				it.Description = strings.Join(parts[0:len(parts)-1], "/")
+				it.Autograb = parts[len(parts)-1]
+			} else {
+				it.Description = val
+			}
+		}
+
+		val2, err := s.NextInt()
+		if err != nil {
+			return fmt.Errorf("Item %d, location: %v", i, err)
+		}
+		it.Location = int32(val2)
+
+		pb.Items = append(pb.Items, it)
 	}
 
 	return nil

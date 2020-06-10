@@ -220,6 +220,13 @@ message Room {
     int32 down         = 8;  // index of room below
 }
 
+message Item {
+    string description = 1;  // description of the item
+    int32 location     = 2;  // room number (-1 is inventory)
+    bool is_treasure   = 3;  // treasure (indicated by asterisks in description)
+    string autograb    = 4;  // if set, automatic get/drop works with this name
+}
+
 message Game {
     Header header            = 1;
     repeated Action actions  = 2;
@@ -227,4 +234,5 @@ message Game {
     repeated Word nouns      = 4;
     repeated Room rooms      = 5;
     repeated string messages = 6;
+    repeated Item items      = 7;
 }
