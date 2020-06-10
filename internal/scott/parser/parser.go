@@ -31,6 +31,8 @@ func Parse(data []byte) (*scottpb.Game, error) {
 		{"rooms", loadRooms},
 		{"messages", loadMessages},
 		{"items", loadItems},
+		{"comments", loadComments},
+		{"footer", loadFooter},
 	} {
 		if err := step.fn(pb, s); err != nil {
 			return nil, fmt.Errorf("Error parsing %s: %v", step.phase, err)
@@ -232,5 +234,38 @@ func loadItems(pb *scottpb.Game, s *stream.Stream) error {
 		pb.Items = append(pb.Items, it)
 	}
 
+	return nil
+}
+
+// loadComments loads in the comments, which annotate the actions.
+func loadComments(pb *scottpb.Game, s *stream.Stream) error {
+	for i := 0; i < int(pb.Header.NumActions); i++ {
+		val, err := s.NextString()
+		if err != nil {
+			return fmt.Errorf("Comment %d: %v", i, err)
+		}
+
+		pb.Actions[i].Comment = val
+	}
+
+	return nil
+}
+
+// loadFooter loads in the game footer, which consists of 3 integer values.
+func loadFooter(pb *scottpb.Game, s *stream.Stream) error {
+	f := &scottpb.Footer{}
+	for _, field := range []*int32{
+		&f.Version,
+		&f.Adventure,
+		&f.Magic,
+	} {
+		val, err := s.NextInt()
+		if err != nil {
+			return err
+		}
+		*field = int32(val)
+	}
+
+	pb.Footer = f
 	return nil
 }

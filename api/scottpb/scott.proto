@@ -202,6 +202,7 @@ message Action {
     int32 noun_index              = 2;  // index of the noun
     repeated Condition conditions = 3;  // 5 conditions
     repeated ActionType actions   = 4;  // 4 actions
+    string comment                = 5;  // optional documentation comment
 }
 
 message Word {
@@ -227,6 +228,12 @@ message Item {
     string autograb    = 4;  // if set, automatic get/drop works with this name
 }
 
+message Footer {
+    int32 version   = 1;  // version number
+    int32 adventure = 2;  // adventure number
+    int32 magic     = 3;  // magic number (purpose unknown)
+}
+
 message Game {
     Header header            = 1;
     repeated Action actions  = 2;
@@ -235,4 +242,5 @@ message Game {
     repeated Room rooms      = 5;
     repeated string messages = 6;
     repeated Item items      = 7;
+    Footer footer            = 8;
 }
