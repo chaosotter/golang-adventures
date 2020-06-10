@@ -221,9 +221,10 @@ message Room {
 }
 
 message Game {
-    Header header           = 1;
-    repeated Action actions = 2;
-    repeated Word verbs     = 3;
-    repeated Word nouns     = 4;
-    repeated Room rooms     = 5;
+    Header header            = 1;
+    repeated Action actions  = 2;
+    repeated Word verbs      = 3;
+    repeated Word nouns      = 4;
+    repeated Room rooms      = 5;
+    repeated string messages = 6;
 }

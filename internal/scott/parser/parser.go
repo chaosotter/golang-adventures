@@ -28,6 +28,7 @@ func Parse(data []byte) (*scottpb.Game, error) {
 		{"actions", loadActions},
 		{"words", loadWords},
 		{"rooms", loadRooms},
+		{"messages", loadMessages},
 	} {
 		if err := step.fn(pb, s); err != nil {
 			return nil, fmt.Errorf("Error parsing %s: %v", step.phase, err)
@@ -176,6 +177,20 @@ func loadRooms(pb *scottpb.Game, s *stream.Stream) error {
 		}
 
 		pb.Rooms = append(pb.Rooms, r)
+	}
+
+	return nil
+}
+
+// loadMessages loads in the messages, which are simply an array of strings.
+func loadMessages(pb *scottpb.Game, s *stream.Stream) error {
+	for i := 0; i < int(pb.Header.NumMessages); i++ {
+		val, err := s.NextString()
+		if err != nil {
+			return fmt.Errorf("Message %d: %v", i, err)
+		}
+
+		pb.Messages = append(pb.Messages, val)
 	}
 
 	return nil
