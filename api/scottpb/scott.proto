@@ -234,7 +234,14 @@ message Footer {
     int32 magic     = 3;  // magic number (purpose unknown)
 }
 
+message State {
+    int32 location          = 1;  // current location of the player
+    repeated bool flags     = 2;  // the current flag values
+    repeated int32 counters = 3;  // the current counter values
+}
+
 message Game {
+    // These fields are from the game file itself.
     Header header            = 1;
     repeated Action actions  = 2;
     repeated Word verbs      = 3;
@@ -243,4 +250,7 @@ message Game {
     repeated string messages = 6;
     repeated Item items      = 7;
     Footer footer            = 8;
+    
+    // These fields are additional state that exists in-game.
+    State state = 9;
 }
