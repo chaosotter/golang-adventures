@@ -4,8 +4,10 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/chaosotter/golang-adventures/internal/scott/game"
@@ -29,6 +31,13 @@ func main() {
 
 	g.Restart()
 	Look(g.Look())
+
+	in := bufio.NewScanner(os.Stdin)
+	os.Stdout.Write([]byte("Tell me what to do ? "))
+	if in.Scan() {
+		pd := g.Parse(in.Text())
+		fmt.Printf("I got this: %v\n", pd)
+	}
 }
 
 func Look(ld *game.LookData) {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"google.golang.org/protobuf/proto"
 
@@ -23,6 +24,7 @@ const (
 	Inventory    = -1 // location corresponding to player inventory
 	DarkFlag     = 15 // flag number for darkness
 	LightOutFlag = 16 // flag number for light gone out
+	UnknownWord  = -1 // value used to represent unknown words
 )
 
 // A Game encaspulates the current state of a Scott Adams adventure.
@@ -80,7 +82,12 @@ type LookData struct {
 func (g *Game) Look() *LookData {
 	ld := &LookData{}
 
-	// TODO: Worry about light.
+	if g.Current.State.Flags[DarkFlag] &&
+		(g.Current.Items[LightItem].Location != Inventory) &&
+		(g.Current.Items[LightItem].Location != g.Current.State.Location) {
+		ld.RoomDescription = "I can't see. It is too dark!"
+		return ld
+	}
 
 	r := g.Current.Rooms[g.Current.State.Location]
 	if r.Literal {
@@ -112,6 +119,70 @@ func (g *Game) Look() *LookData {
 	}
 
 	return ld
+}
+
+// ParseData encapsulates all of the data from parsing a command.
+type ParseData struct {
+	Verb      string // the (uppercase, truncated) text of the entered verb
+	VerbIndex int    // the index of the verb, or UnknownWord
+	Noun      string // the (uppercase, truncated) text of the entered noun
+	NounIndex int    // the index of the noun, or UnknownWord
+}
+
+// Parse parses the given line of user input into a verb and noun.  It does not
+// attempt to execute the command.
+func (g *Game) Parse(input string) *ParseData {
+	input = strings.ToUpper(strings.TrimSpace(input))
+
+	var verb, noun string
+	words := strings.SplitN(input, " ", 2)
+	if len(words) > 0 {
+		verb = words[0]
+	}
+	if len(words) > 1 {
+		noun = words[1]
+	}
+
+	switch verb {
+	case "N":
+		verb, noun = "GO", "NORTH"
+	case "S":
+		verb, noun = "GO", "SOUTH"
+	case "W":
+		verb, noun = "GO", "WEST"
+	case "E":
+		verb, noun = "GO", "EAST"
+	case "U":
+		verb, noun = "GO", "UP"
+	case "D":
+		verb, noun = "GO", "DOWN"
+	case "I":
+		verb = "INVENTORY"
+	}
+
+	return &ParseData{
+		Verb:      verb,
+		VerbIndex: g.findWord(g.Current.Verbs, verb),
+		Noun:      noun,
+		NounIndex: g.findWord(g.Current.Nouns, noun),
+	}
+}
+
+// findWord finds the index of |w| within |ws|.  Synonyms are resolved down to
+// the lowest matching index.
+func (g *Game) findWord(ws []*scottpb.Word, w string) int {
+	w = (w + "      ")[0:g.Current.Header.WordLength]
+	for i := 0; i < len(ws); i++ {
+		if (ws[i].Word + "      ")[0:g.Current.Header.WordLength] != w {
+			continue
+		}
+		for j := i; j >= 0; j-- {
+			if !ws[j].Synonym {
+				return j
+			}
+		}
+	}
+	return UnknownWord
 }
 
 // Restart the game.
