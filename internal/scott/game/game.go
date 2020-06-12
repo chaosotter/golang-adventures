@@ -3,6 +3,9 @@
 package game
 
 import (
+	"io/ioutil"
+	"log"
+
 	"github.com/chaosotter/golang-adventures/api/scottpb"
 	"github.com/chaosotter/golang-adventures/internal/scott/parser"
 )
@@ -26,4 +29,20 @@ func New(data []byte) (*Game, error) {
 		Initial: pb,
 	}
 	return g, nil
+}
+
+// MustLoadFromFile tries to initialize a fresh Game value from the given file
+// or aborts the process.
+func MustLoadFromFile(path string) *Game {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalf("Could not read %q: %v", path, err)
+	}
+
+	g, err := New(data)
+	if err != nil {
+		log.Fatalf("Could not parse %q: %v", path, err)
+	}
+
+	return g
 }

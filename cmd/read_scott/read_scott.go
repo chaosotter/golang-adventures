@@ -5,8 +5,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
 
 	"google.golang.org/protobuf/encoding/prototext"
 
@@ -17,17 +15,7 @@ var gamePath = flag.String("game", "", "Path to the game file in ScottFree (TRS-
 
 func main() {
 	flag.Parse()
-
-	data, err := ioutil.ReadFile(*gamePath)
-	if err != nil {
-		log.Fatalf("Could not read %q: %v", *gamePath, err)
-	}
-	fmt.Printf("Read %d bytes from %q.\n", len(data), *gamePath)
-
-	g, err := game.New(data)
-	if err != nil {
-		log.Fatalf("Could not parse %q: %v", *gamePath, err)
-	}
+	g := game.MustLoadFromFile(*gamePath)
 
 	fmt.Println(prototext.Format(g.Initial))
 }

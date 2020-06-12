@@ -105,8 +105,8 @@ func New(data []byte) (*Stream, error) {
 		// Quote state: Read the initial '"' of a string.
 		case stateQuote:
 			switch {
-			//case ch == '\\':
-			//	st = stateEscape
+			case ch == '\\':
+				st = stateEscape
 			case ch == '"':
 				s.tokens = append(s.tokens, token{typeStr, b.String()})
 				b.Reset()

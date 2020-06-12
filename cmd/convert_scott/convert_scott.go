@@ -20,16 +20,7 @@ var (
 
 func main() {
 	flag.Parse()
-
-	data, err := ioutil.ReadFile(*inPath)
-	if err != nil {
-		log.Fatalf("Could not read %q: %v", *inPath, err)
-	}
-
-	g, err := game.New(data)
-	if err != nil {
-		log.Fatalf("Could not parse %q: %v", *inPath, err)
-	}
+	g := game.MustLoadFromFile(*inPath)
 
 	wire, err := proto.Marshal(g.Initial)
 	if err != nil {
