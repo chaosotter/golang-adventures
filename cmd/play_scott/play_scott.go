@@ -6,7 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
+	"strings"
 
 	"github.com/chaosotter/golang-adventures/internal/scott/game"
 )
@@ -28,5 +28,23 @@ func main() {
 		g.Initial.Footer.Version/100, g.Initial.Footer.Version%100, g.Initial.Footer.Adventure)
 
 	g.Restart()
-	g.Look(os.Stdout)
+	Look(g.Look())
+}
+
+func Look(ld *game.LookData) {
+	fmt.Println(ld.RoomDescription)
+
+	fmt.Printf("Obvious exits: ")
+	if len(ld.Exits) > 0 {
+		fmt.Printf("%s\n", strings.Join(ld.Exits, ", "))
+	} else {
+		fmt.Println("None\n")
+	}
+
+	// TODO: Handle line-wrapping.
+	if len(ld.Items) > 0 {
+		fmt.Printf("\nI can also see: %s\n", strings.Join(ld.Items, " - "))
+	}
+
+	fmt.Println()
 }

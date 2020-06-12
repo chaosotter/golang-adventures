@@ -4,10 +4,8 @@ package game
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
-	"strings"
 
 	"google.golang.org/protobuf/proto"
 
@@ -68,18 +66,29 @@ func MustLoadFromFile(path string) *Game {
 	return g
 }
 
-// Look prints the standard description information to the given output.
-func (g *Game) Look(out io.Writer) {
-	// TODO: Worry about light.
-	r := g.Current.Rooms[g.Current.State.Location]
+// LookData encapsulates all of the data that go into refreshing the room
+// description.  We avoid direct output for the benefit of writing additional
+// drivers.
+type LookData struct {
+	IsDark          bool     // true if it's too dark to see
+	RoomDescription string   // the room description, made into a sentence
+	Exits           []string // ordered list of obvious exits
+	Items           []string // ordered list of items in the room
+}
 
+// Look prints the standard description information to the given output.
+func (g *Game) Look() *LookData {
+	ld := &LookData{}
+
+	// TODO: Worry about light.
+
+	r := g.Current.Rooms[g.Current.State.Location]
 	if r.Literal {
-		fmt.Fprintf(out, "%s\n", r.Description)
+		ld.RoomDescription = r.Description
 	} else {
-		fmt.Fprintf(out, "I'm in a %s\n", r.Description)
+		ld.RoomDescription = fmt.Sprintf("I'm in a %s", r.Description)
 	}
 
-	var exits []string
 	for _, field := range []struct {
 		loc  int32
 		name string
@@ -92,28 +101,17 @@ func (g *Game) Look(out io.Writer) {
 		{r.Down, "Down"},
 	} {
 		if field.loc != 0 {
-			exits = append(exits, field.name)
+			ld.Exits = append(ld.Exits, field.name)
 		}
 	}
-	fmt.Fprintf(out, "Obvious exits: ")
-	if len(exits) > 0 {
-		fmt.Fprintf(out, "%s\n", strings.Join(exits, ", "))
-	} else {
-		fmt.Fprintf(out, "None\n")
-	}
 
-	// TODO: Handle line-wrapping.
-	var items []string
 	for i := 0; i < int(g.Current.Header.NumItems); i++ {
 		if it := g.Current.Items[i]; it.Location == g.Current.State.Location {
-			items = append(items, it.Description)
+			ld.Items = append(ld.Items, it.Description)
 		}
 	}
-	if len(items) > 0 {
-		fmt.Fprintf(out, "\nI can also see: %s\n", strings.Join(items, " - "))
-	}
 
-	fmt.Fprintf(out, "\n")
+	return ld
 }
 
 // Restart the game.
