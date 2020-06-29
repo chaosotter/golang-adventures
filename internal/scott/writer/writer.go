@@ -80,12 +80,9 @@ func (t *trs80) writeWord(w *scottpb.Word) {
 func (t *trs80) writeRooms() {
 	for i := 0; i < int(t.pb.Header.NumRooms); i++ {
 		r := t.pb.Rooms[i]
-		t.writeIntLn(r.North)
-		t.writeIntLn(r.South)
-		t.writeIntLn(r.East)
-		t.writeIntLn(r.West)
-		t.writeIntLn(r.Up)
-		t.writeIntLn(r.Down)
+		for j := 0; j < 6; j++ { // north, south, east, west, up, down
+			t.writeIntLn(r.Exits[j])
+		}
 		t.writeRoomDescription(r)
 	}
 }

@@ -211,14 +211,9 @@ message Word {
 }
 
 message Room {
-    string description = 1;  // description of the room
-    bool literal       = 2;  // if set, the description is to be printed literally (no "I'm in a" prefix)
-    int32 north        = 3;  // index of room to the north
-    int32 south        = 4;  // index of room to the south
-    int32 east         = 5;  // index of room to the east
-    int32 west         = 6;  // index of room to the west
-    int32 up           = 7;  // index of room above
-    int32 down         = 8;  // index of room below
+    string description   = 1;  // description of the room
+    bool literal         = 2;  // if set, the description is to be printed literally (no "I'm in a" prefix)
+    repeated int32 exits = 3;  // always six elements: north, south, east, west, up, down
 }
 
 message Item {

@@ -40,9 +40,19 @@ func main() {
 		if in.Scan() {
 			pd := g.Parse(in.Text())
 			fmt.Printf("I got this: %q<%d> %q<%d>\n", pd.Verb, pd.VerbIndex, pd.Noun, pd.NounIndex)
+
 			switch g.Execute(pd) {
 			case game.Unknown:
 				fmt.Println("I don't understand your command.")
+			case game.NoDirection:
+				fmt.Println("Give me a direction too.")
+			case game.BadDirection:
+				fmt.Println("I can't go in that direction.")
+			case game.DangerousDark:
+				fmt.Println("Dangerous to move in the dark!")
+			case game.DeadDark:
+				fmt.Println("Dangerous to move in the dark!")
+				fmt.Println("I feel down and broke my neck.")
 			case game.Unsuccessful:
 				fmt.Println("I can't do that yet.")
 			}
@@ -59,7 +69,7 @@ func Look(ld *game.LookData) {
 	if len(ld.Exits) > 0 {
 		fmt.Printf("%s\n", strings.Join(ld.Exits, ", "))
 	} else {
-		fmt.Println("None\n")
+		fmt.Println("None")
 	}
 
 	// TODO: Handle line-wrapping.

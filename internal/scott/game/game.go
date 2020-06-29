@@ -27,13 +27,22 @@ const (
 	UnknownWord  = -1 // value used to represent unknown words
 )
 
+const (
+	AutoVerb = 0 // used for automatic actions
+	GoVerb   = 1 // used for motion ("GO")
+)
+
 // Status is used as a return code for the attempted execution of a command.
 type Status int
 
 const (
-	Success      = Status(iota) // command was processed successfully
-	Unknown                     // command wasn't understood
-	Unsuccessful                // command is valid but couldn't be fulfilled
+	Success       = Status(iota) // command was processed successfully
+	Unknown                      // command wasn't understood
+	NoDirection                  // "GO" command with no direction
+	BadDirection                 // "GO" command with an invalid direction
+	DangerousDark                // a dangerous move in the dark (valid direction)
+	DeadDark                     // a fatal move in the dark (invalid direction)
+	Unsuccessful                 // command is valid but couldn't be fulfilled
 )
 
 // A Game encaspulates the current state of a Scott Adams adventure.
@@ -62,8 +71,9 @@ func New(data []byte) (*Game, error) {
 	g := &Game{
 		Initial: pb,
 		DefaultCommand: &ParseData{
-			Verb: pb.Verbs[0].Word,
-			Noun: pb.Nouns[0].Word,
+			Verb:      pb.Verbs[AutoVerb].Word,
+			VerbIndex: AutoVerb,
+			Noun:      pb.Nouns[0].Word,
 		},
 	}
 
@@ -101,9 +111,7 @@ type LookData struct {
 func (g *Game) Look() *LookData {
 	ld := &LookData{}
 
-	if g.Current.State.Flags[DarkFlag] &&
-		(g.Current.Items[LightItem].Location != Inventory) &&
-		(g.Current.Items[LightItem].Location != g.Current.State.Location) {
+	if g.IsDark() {
 		ld.RoomDescription = "I can't see. It is too dark!"
 		return ld
 	}
@@ -115,19 +123,9 @@ func (g *Game) Look() *LookData {
 		ld.RoomDescription = fmt.Sprintf("I'm in a %s", r.Description)
 	}
 
-	for _, field := range []struct {
-		loc  int32
-		name string
-	}{
-		{r.North, "North"},
-		{r.South, "South"},
-		{r.West, "West"},
-		{r.East, "East"},
-		{r.Up, "Up"},
-		{r.Down, "Down"},
-	} {
-		if field.loc != 0 {
-			ld.Exits = append(ld.Exits, field.name)
+	for i, dir := range []string{"North", "South", "East", "West", "Up", "Down"} {
+		if r.Exits[i] != 0 {
+			ld.Exits = append(ld.Exits, dir)
 		}
 	}
 
@@ -206,6 +204,30 @@ func (g *Game) findWord(ws []*scottpb.Word, w string) int {
 
 // Execute the given command.
 func (g *Game) Execute(pd *ParseData) Status {
+	// Try movement first as a special case.
+	if pd.VerbIndex == GoVerb {
+		switch {
+		case pd.NounIndex == UnknownWord:
+			return NoDirection
+		case pd.NounIndex >= 1 && pd.NounIndex <= 6: // nouns 1..6 are always the directions
+			dark := g.IsDark()
+			dest := g.Current.Rooms[g.Current.State.Location].Exits[pd.NounIndex-1]
+			switch {
+			case dark && dest == 0:
+				g.KillPlayer()
+				return DeadDark
+			case dark:
+				g.Current.State.Location = dest
+				return DangerousDark
+			case dest == 0:
+				return BadDirection
+			default:
+				g.Current.State.Location = dest
+				return Success
+			}
+		}
+	}
+
 	return Success
 }
 
@@ -214,6 +236,20 @@ func (g *Game) Execute(pd *ParseData) Status {
 // "AUTO") and noun 0 (usually "ANY").
 func (g *Game) ExecuteDefault() Status {
 	return g.Execute(g.DefaultCommand)
+}
+
+// IsDark checks if the player is currently in the dark.
+func (g *Game) IsDark() bool {
+	return g.Current.State.Flags[DarkFlag] &&
+		(g.Current.Items[LightItem].Location != Inventory) &&
+		(g.Current.Items[LightItem].Location != g.Current.State.Location)
+}
+
+// KillPlayer kills the player.  This turns darkness off and places them in the
+// last room in the game (action DEATH).
+func (g *Game) KillPlayer() {
+	g.Current.State.Location = g.Current.Header.NumRooms - 1
+	g.Current.State.Flags[DarkFlag] = false
 }
 
 // Restart the game.

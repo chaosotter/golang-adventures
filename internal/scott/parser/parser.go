@@ -154,19 +154,12 @@ func makeWord(raw string) *scottpb.Word {
 func loadRooms(pb *scottpb.Game, s *stream.Stream) error {
 	for i := 0; i < int(pb.Header.NumRooms); i++ {
 		r := &scottpb.Room{}
-		for _, field := range []*int32{
-			&r.North,
-			&r.South,
-			&r.East,
-			&r.West,
-			&r.Up,
-			&r.Down,
-		} {
+		for j := 0; j < 6; j++ { // north, south, east, west, up, down
 			val, err := s.NextInt()
 			if err != nil {
-				return fmt.Errorf("Room %d, directions: %v", i, err)
+				return fmt.Errorf("Room %d, direction %d: %v", i, j, err)
 			}
-			*field = int32(val)
+			r.Exits = append(r.Exits, int32(val))
 		}
 
 		desc, err := s.NextString()
