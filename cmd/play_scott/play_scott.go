@@ -30,13 +30,25 @@ func main() {
 		g.Initial.Footer.Version/100, g.Initial.Footer.Version%100, g.Initial.Footer.Adventure)
 
 	g.Restart()
-	Look(g.Look())
-
 	in := bufio.NewScanner(os.Stdin)
-	os.Stdout.Write([]byte("Tell me what to do ? "))
-	if in.Scan() {
-		pd := g.Parse(in.Text())
-		fmt.Printf("I got this: %v\n", pd)
+
+	for {
+		fmt.Println()
+		Look(g.Look())
+
+		os.Stdout.Write([]byte("Tell me what to do ? "))
+		if in.Scan() {
+			pd := g.Parse(in.Text())
+			fmt.Printf("I got this: %q<%d> %q<%d>\n", pd.Verb, pd.VerbIndex, pd.Noun, pd.NounIndex)
+			switch g.Execute(pd) {
+			case game.Unknown:
+				fmt.Println("I don't understand your command.")
+			case game.Unsuccessful:
+				fmt.Println("I can't do that yet.")
+			}
+		}
+
+		// TODO: Handle the light source ticking down.
 	}
 }
 

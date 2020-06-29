@@ -27,6 +27,15 @@ const (
 	UnknownWord  = -1 // value used to represent unknown words
 )
 
+// Status is used as a return code for the attempted execution of a command.
+type Status int
+
+const (
+	Success      = Status(iota) // command was processed successfully
+	Unknown                     // command wasn't understood
+	Unsuccessful                // command is valid but couldn't be fulfilled
+)
+
 // A Game encaspulates the current state of a Scott Adams adventure.
 type Game struct {
 	// Initial is a proto holding the initial state of the game in the form of
@@ -35,6 +44,11 @@ type Game struct {
 
 	// Current is a deep copy of Initial that contains the current game state.
 	Current *scottpb.Game
+
+	// DefaultCommand is the default "auto-execution" command for this game.
+	// It is always based on verb 0 and noun 0, but the text might vary from
+	// game to game.
+	DefaultCommand *ParseData
 }
 
 // New initializes a fresh Game value from the raw bytes read from the external
@@ -47,7 +61,12 @@ func New(data []byte) (*Game, error) {
 
 	g := &Game{
 		Initial: pb,
+		DefaultCommand: &ParseData{
+			Verb: pb.Verbs[0].Word,
+			Noun: pb.Nouns[0].Word,
+		},
 	}
+
 	g.Restart()
 	return g, nil
 }
@@ -144,17 +163,17 @@ func (g *Game) Parse(input string) *ParseData {
 	}
 
 	switch verb {
-	case "N":
+	case "N", "NORTH":
 		verb, noun = "GO", "NORTH"
-	case "S":
+	case "S", "SOUTH":
 		verb, noun = "GO", "SOUTH"
-	case "W":
+	case "W", "WEST":
 		verb, noun = "GO", "WEST"
-	case "E":
+	case "E", "EAST":
 		verb, noun = "GO", "EAST"
-	case "U":
+	case "U", "UP":
 		verb, noun = "GO", "UP"
-	case "D":
+	case "D", "DOWN":
 		verb, noun = "GO", "DOWN"
 	case "I":
 		verb = "INVENTORY"
@@ -183,6 +202,18 @@ func (g *Game) findWord(ws []*scottpb.Word, w string) int {
 		}
 	}
 	return UnknownWord
+}
+
+// Execute the given command.
+func (g *Game) Execute(pd *ParseData) Status {
+	return Success
+}
+
+// Execute the default commands (i.e., actions that represent the passage of
+// time rather a reaction to user input).  This is always verb 0 (usually
+// "AUTO") and noun 0 (usually "ANY").
+func (g *Game) ExecuteDefault() Status {
+	return g.Execute(g.DefaultCommand)
 }
 
 // Restart the game.
